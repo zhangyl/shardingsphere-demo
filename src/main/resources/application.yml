@@ -1,0 +1,62 @@
+server:
+  port: 8888
+logging:
+  level:
+    org:
+      springframework: debug
+mybatis:
+  mapper-locations: classpath:mybatis/*Mapper.xml
+  config-location: classpath:mybatis-config.xml
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  shardingsphere:
+    datasource:
+      # 数据源名称，多数据源以逗号分隔
+      names: db0,db1,db2
+      db0:
+        url: jdbc:mysql://127.0.0.1:3306/multi_default?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: '123456'
+      db1:
+        url: jdbc:mysql://127.0.0.1:3306/multi_1?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: '123456'
+      db2:
+        url: jdbc:mysql://127.0.0.1:3306/multi_2?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: root
+        password: '123456'
+    props:
+      sql:
+        show: true
+    rules:
+      sharding:
+        sharding-algorithms:
+          #自定义shard算法名称,可以随便定义，后面sharding-algorithm-name值和此处对应
+          database-TestShardingAlgorithm:
+            type: TestShardingAlgorithm
+            props:
+        default-data-source-name:  db0
+        default-database-strategy:
+          standard:
+            #根据ent_code字段切分
+            sharding-column: ent_code
+            sharding-algorithm-name: database-TestShardingAlgorithm
+        #配置表路由规则，如果不配置tables路由规则，默认走SingleTableRule，从数据源中找出存在这个表的数据源，存在数据源覆盖。参考源码：
+        #org.apache.shardingsphere.infra.metadata.schema.builder.loader.SchemaMetaDataLoader.loadAllTableNames(Connection)
+        tables:
+          #逻辑表名称为cost，只分库,存在三个数据节点。
+          cost:
+            actual-data-nodes: db${0..2}.cost
+             
+
+
+
+
